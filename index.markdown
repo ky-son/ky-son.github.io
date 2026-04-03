@@ -4,4 +4,4 @@
 
 layout: home
 ---
-{% include planet-orbit.html %} 
+{% include ascii_3d_planet_final.html %} 
