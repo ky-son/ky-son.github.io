@@ -1,0 +1,29 @@
+---
+layout: default
+title: Research
+permalink: /research/
+---
+<div class="section-page">
+  <h2>Research</h2>
+  <p class="subtitle">Ongoing and planned security research</p>
+
+  {% assign research_posts = site.posts | where: "category", "research" %}
+  {% for post in research_posts %}
+    <a href="{{ post.url | relative_url }}" class="post-card">
+      <div class="post-meta">
+        <span class="post-date">{{ post.date | date: "%Y-%m-%d" }}</span>
+        {% for tag in post.tags %}
+          <span class="post-tag">{{ tag }}</span>
+        {% endfor %}
+      </div>
+      <h3>{{ post.title }}</h3>
+      <p>{{ post.excerpt | strip_html | truncate: 160 }}</p>
+    </a>
+  {% endfor %}
+
+  {% if research_posts.size == 0 %}
+    <div class="empty-state">
+      No research posts yet. Add posts to <code>_posts/</code> with <code>category: research</code>
+    </div>
+  {% endif %}
+</div>

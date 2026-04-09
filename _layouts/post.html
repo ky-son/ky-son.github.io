@@ -1,0 +1,20 @@
+---
+layout: default
+---
+<div class="post-content">
+  {% if page.category == 'ctf' %}
+    <a href="{{ '/ctf' | relative_url }}" class="back-link">&larr; Back to writeups</a>
+  {% elsif page.category == 'research' %}
+    <a href="{{ '/research' | relative_url }}" class="back-link">&larr; Back to research</a>
+  {% endif %}
+
+  <h1>{{ page.title }}</h1>
+  <div class="post-meta">
+    <span class="post-date">{{ page.date | date: "%Y-%m-%d" }}</span>
+    {% for tag in page.tags %}
+      <span class="post-tag">{{ tag }}</span>
+    {% endfor %}
+  </div>
+
+  {{ content }}
+</div>

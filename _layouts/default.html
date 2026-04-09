@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page.title | default: site.title }}</title>
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+</head>
+<body>
+
+<nav>
+  <a href="{{ '/' | relative_url }}" {% if page.url == '/' %}class="active"{% endif %}>Home</a>
+  <a href="{{ '/about' | relative_url }}" {% if page.url == '/about/' or page.url == '/about' %}class="active"{% endif %}>About</a>
+  <a href="{{ '/research' | relative_url }}" {% if page.url == '/research/' or page.url == '/research' or page.category == 'research' %}class="active"{% endif %}>Research</a>
+  <a href="{{ '/ctf' | relative_url }}" {% if page.url == '/ctf/' or page.url == '/ctf' or page.category == 'ctf' %}class="active"{% endif %}>Writeups</a>
+</nav>
+
+{{ content }}
+
+</body>
+</html>

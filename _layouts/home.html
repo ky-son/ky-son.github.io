@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ site.title }}</title>
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+</head>
+<body>
+
+<nav>
+  <a href="{{ '/' | relative_url }}" class="active">Home</a>
+  <a href="{{ '/about' | relative_url }}">About</a>
+  <a href="{{ '/research' | relative_url }}">Research</a>
+  <a href="{{ '/ctf' | relative_url }}">Writeups</a>
+</nav>
+
+<div class="home-wrapper">
+  <div class="home-content">
+    <div id="planet-canvas"></div>
+    <div class="site-title">{{ site.title }}</div>
+  </div>
+  <div class="home-footer">
+    <a href="https://github.com/ky-son" target="_blank">Github</a>
+    <a href="https://linkedin.com/in/kyson-fromm-89691337a/" target="_blank">LinkedIn</a>
+    <a href="mailto:kysonlocks@gmail.com">Email</a>
+  </div>
+</div>
+
+<script src="{{ '/assets/js/planet.js' | relative_url }}"></script>
+
+</body>
+</html>
