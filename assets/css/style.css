@@ -84,7 +84,7 @@ nav a:hover, nav a.active {
 
 .site-title {
   font-family: var(--mono);
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   letter-spacing: 0.35em;
   text-transform: uppercase;
   color: var(--text);
@@ -194,7 +194,7 @@ nav a:hover, nav a.active {
 
 /* About page */
 .about-text p {
-  font-size: 0.45rem;
+  font-size: 0.6rem;
   color: var(--text-dim);
   line-height: 2.4;
   letter-spacing: 0.03em;
