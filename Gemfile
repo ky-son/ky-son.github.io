@@ -6,3 +6,4 @@ source "https://rubygems.org"
 # For local dev on Arch (if github-pages gem gives issues):
 gem "jekyll"
 gem "webrick"
+gem "erb"
