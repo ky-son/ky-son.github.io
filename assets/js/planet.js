@@ -1,4 +1,4 @@
-const W = 70, H = 26;
+const W = 55, H = 22;
 const CX = W / 2, CY = H / 2;
 const ASPECT = 2.1;
 const SHADE = ' .:;+=xX$&#@';
@@ -26,12 +26,8 @@ function sphereChar(nx, ny, nz) {
 const planetGrid = Array.from({length: H}, () => Array(W).fill(' '));
 const planetMask = Array.from({length: H}, () => Array(W).fill(false));
 
-// Projected screen-space radius of the planet (for occlusion)
-let planetScreenCX = CX, planetScreenCY = CY, planetScreenRX = 0, planetScreenRY = 0;
-
 (function buildPlanet() {
   const zBuf = Array.from({length: H}, () => Array(W).fill(-9999));
-  let minC = W, maxC = 0, minR = H, maxR = 0;
   for (let ui = 0; ui <= 64; ui++) {
     for (let vi = 0; vi <= 128; vi++) {
       const u = (ui/64)*Math.PI, v2 = (vi/128)*2*Math.PI;
@@ -46,26 +42,9 @@ let planetScreenCX = CX, planetScreenCY = CY, planetScreenRX = 0, planetScreenRY
         planetGrid[r][c] = sphereChar(nx, ny, nz);
         planetMask[r][c] = true;
       }
-      // Track planet bounds for occlusion
-      if (col < minC) minC = col;
-      if (col > maxC) maxC = col;
-      if (row < minR) minR = row;
-      if (row > maxR) maxR = row;
     }
   }
-  planetScreenCX = (minC + maxC) / 2;
-  planetScreenCY = (minR + maxR) / 2;
-  planetScreenRX = (maxC - minC) / 2 + 0.5;
-  planetScreenRY = (maxR - minR) / 2 + 0.5;
 })();
-
-// Check if a screen position is occluded by the planet
-function behindPlanet(col, row, z) {
-  if (z > 0) return false; // in front of planet center, not occluded
-  const dx = (col - planetScreenCX) / planetScreenRX;
-  const dy = (row - planetScreenCY) / planetScreenRY;
-  return (dx * dx + dy * dy) < 1.0;
-}
 
 const STAR_DEFS = [
   { inc: -50, az: 110, r: 14, speed: 0.72, phase: 2.1, ch: 'o' },
@@ -85,35 +64,40 @@ const el = document.getElementById('planet-canvas');
 
 function render(t) {
   const grid = planetGrid.map(r => r.slice());
-  function set(col, row, ch, z) {
+  function set(col, row, ch) {
     const c = Math.round(col), r = Math.round(row);
     if (c < 0 || c >= W || r < 0 || r >= H) return;
-    if (planetMask[r][c]) return; // never draw over planet
-    if (behindPlanet(col, row, z)) return; // hidden behind planet
+    if (ch === '.' && planetMask[r][c]) return;
     grid[r][c] = ch;
   }
 
-  // Draw full orbit ring
   STAR_DEFS.forEach(star => {
-    for (let a = 0; a < 2*Math.PI; a += 0.04) {
+    for (let a = 0; a < 2*Math.PI; a += 0.05) {
       let p = [star.r*Math.cos(a), 0, star.r*Math.sin(a)];
       p = rotZ(p, deg(star.inc)); p = rotY(p, deg(star.az)); p = rotX(p, deg(tiltDeg));
       const [col, row, z] = project(p);
-      set(col, row, '.', z);
+      if (z < 0) set(col, row, '.');
     }
   });
 
-  // Star trails + star
+  STAR_DEFS.forEach(star => {
+    for (let a = 0; a < 2*Math.PI; a += 0.05) {
+      let p = [star.r*Math.cos(a), 0, star.r*Math.sin(a)];
+      p = rotZ(p, deg(star.inc)); p = rotY(p, deg(star.az)); p = rotX(p, deg(tiltDeg));
+      const [col, row, z] = project(p);
+      if (z >= 0) set(col, row, '.');
+    }
+  });
+
   STAR_DEFS.forEach(star => {
     for (let i = 7; i >= 1; i--) {
       const p3 = starPos3D(star, t - i * 0.09);
-      const [col, row, z] = project(p3);
+      const [col, row] = project(p3);
       const alpha = 1 - i / 9;
-      set(col, row, alpha > 0.6 ? star.ch : (alpha > 0.35 ? '.' : ' '), z);
+      set(col, row, alpha > 0.6 ? star.ch : (alpha > 0.35 ? '.' : ' '));
     }
-    const p3 = starPos3D(star, t);
-    const [col, row, z] = project(p3);
-    set(col, row, star.ch, z);
+    const [col, row] = project(starPos3D(star, t));
+    set(col, row, star.ch);
   });
 
   return grid.map(r => r.join('')).join('\n');
