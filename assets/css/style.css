@@ -194,7 +194,7 @@ nav a:hover, nav a.active {
 
 /* About page */
 .about-text p {
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   color: var(--text-dim);
   line-height: 2.4;
   letter-spacing: 0.03em;
