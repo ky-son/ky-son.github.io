@@ -89,28 +89,7 @@ nav a:hover, nav a.active {
   text-transform: uppercase;
   color: var(--text);
   margin-bottom: 3rem;
-}
-
-footer {
-  display: flex;
-  gap: 2.5rem;
-  justify-content: center;
-  padding: 2rem 0;
-}
-
-footer a {
-  color: var(--text-dim);
-  text-decoration: none;
-  font-family: var(--mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  transition: all 0.3s;
-}
-
-footer a:hover {
-  color: var(--accent);
-  text-shadow: 0 0 8px rgba(196,90,60,0.4);
+  padding-left: 0.35em;
 }
 
 .home-footer {
