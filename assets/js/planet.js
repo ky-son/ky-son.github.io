@@ -3,8 +3,8 @@ const CX = Math.floor(W / 2);
 const CY = Math.floor(H / 2);
 const el = document.getElementById('planet-canvas');
 
-const PLANET_RX = 8;
-const PLANET_RY = 5;
+const PLANET_RX = 10;
+const PLANET_RY = 6;
 
 const gradient = " .:-=+*#%@";
 
