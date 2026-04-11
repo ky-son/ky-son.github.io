@@ -1,113 +1,85 @@
-const W = 55, H = 22;
-const CX = W / 2, CY = H / 2;
-const ASPECT = 2.1;
-const SHADE = ' .:;+=xX$&#@';
-const PLANET_R = 3.8;
-const tiltDeg = 38;
-
-function deg(d) { return d * Math.PI / 180; }
-function rotX(p, a) { return [p[0], p[1]*Math.cos(a)-p[2]*Math.sin(a), p[1]*Math.sin(a)+p[2]*Math.cos(a)]; }
-function rotY(p, a) { return [p[0]*Math.cos(a)+p[2]*Math.sin(a), p[1], -p[0]*Math.sin(a)+p[2]*Math.cos(a)]; }
-function rotZ(p, a) { return [p[0]*Math.cos(a)-p[1]*Math.sin(a), p[0]*Math.sin(a)+p[1]*Math.cos(a), p[2]]; }
-
-function project(p) {
-  const fov = 35, z = p[2] + fov;
-  return [CX + (p[0]/z)*fov*ASPECT, CY + (p[1]/z)*fov, p[2]];
-}
-
-function sphereChar(nx, ny, nz) {
-  const light = [0.6, -0.4, 0.7];
-  const len = Math.sqrt(light[0]**2+light[1]**2+light[2]**2);
-  const dot = (nx*light[0]+ny*light[1]+nz*light[2]) / len;
-  const v = Math.max(0, Math.min(1, (dot + 0.3) / 1.3));
-  return SHADE[Math.floor(v * (SHADE.length - 1))];
-}
-
-const planetGrid = Array.from({length: H}, () => Array(W).fill(' '));
-const planetMask = Array.from({length: H}, () => Array(W).fill(false));
-
-(function buildPlanet() {
-  const zBuf = Array.from({length: H}, () => Array(W).fill(-9999));
-  for (let ui = 0; ui <= 64; ui++) {
-    for (let vi = 0; vi <= 128; vi++) {
-      const u = (ui/64)*Math.PI, v2 = (vi/128)*2*Math.PI;
-      const nx = Math.sin(u)*Math.cos(v2), ny = Math.sin(u)*Math.sin(v2), nz = Math.cos(u);
-      let p = [nx*PLANET_R, ny*PLANET_R, nz*PLANET_R];
-      p = rotX(p, deg(tiltDeg));
-      const [col, row, z] = project(p);
-      const c = Math.round(col), r = Math.round(row);
-      if (c < 0 || c >= W || r < 0 || r >= H) continue;
-      if (z > zBuf[r][c]) {
-        zBuf[r][c] = z;
-        planetGrid[r][c] = sphereChar(nx, ny, nz);
-        planetMask[r][c] = true;
-      }
-    }
-  }
-})();
-
-const STAR_DEFS = [
-  { inc: -50, az: 110, r: 14, speed: 0.72, phase: 2.1, ch: 'o' },
-];
-
-function starPos3D(star, t) {
-  const angle = t * star.speed + star.phase;
-  let p = [star.r * Math.cos(angle), 0, star.r * Math.sin(angle)];
-  p = rotZ(p, deg(star.inc));
-  p = rotY(p, deg(star.az));
-  p = rotX(p, deg(tiltDeg));
-  return p;
-}
-
-let T = 0, last = null;
+const W = 90, H = 50;
+const CX = Math.floor(W / 2);
+const CY = Math.floor(H / 2);
 const el = document.getElementById('planet-canvas');
 
-function render(t) {
-  const grid = planetGrid.map(r => r.slice());
-  function set(col, row, ch) {
-    const c = Math.round(col), r = Math.round(row);
-    if (c < 0 || c >= W || r < 0 || r >= H) return;
-    if (ch === '.' && planetMask[r][c]) return;
-    grid[r][c] = ch;
+const PLANET_RX = 12;
+const PLANET_RY = 7.5;
+
+const gradient = " .:-=+*#%@";
+
+function planetChar(x, y) {
+  const dx = (x - CX) / PLANET_RX;
+  const dy = (y - CY) / PLANET_RY;
+  const brightness = 1.0 - ((-dx * 0.6 + dy * 0.8) * 0.5 + 0.5);
+  const idx = Math.floor(Math.max(0, Math.min(0.99, brightness)) * gradient.length);
+  return gradient[idx];
+}
+
+function isInsidePlanet(x, y) {
+  const dx = (x - CX) / PLANET_RX;
+  const dy = (y - CY) / PLANET_RY;
+  return dx * dx + dy * dy <= 1.0;
+}
+
+const stars = [];
+for (let i = 0; i < 30; i++) {
+  stars.push({
+    x: Math.floor(Math.random() * W),
+    y: Math.floor(Math.random() * H),
+    c: '.·*'[Math.floor(Math.random() * 3)],
+    phase: Math.random() * Math.PI * 2
+  });
+}
+
+const NUM_DEBRIS = 40;
+const debris = [];
+for (let i = 0; i < NUM_DEBRIS; i++) {
+  const angle = (i / NUM_DEBRIS) * Math.PI * 2;
+  debris.push({
+    angle,
+    radius: 0.92 + Math.random() * 0.16,
+    speed: 0.007 + Math.random() * 0.003,
+    ch: '·.°·.·°.'[Math.floor(Math.random() * 8)]
+  });
+}
+
+const RING_A = 22;
+const RING_B = 6;
+let frame = 0;
+
+function drawFrame() {
+  const buf = [];
+  for (let y = 0; y < H; y++) buf.push(new Array(W).fill(' '));
+
+  for (const s of stars) {
+    const show = Math.sin(frame * 0.025 + s.phase) > -0.2;
+    if (show && !isInsidePlanet(s.x, s.y)) buf[s.y][s.x] = s.c;
   }
 
-  STAR_DEFS.forEach(star => {
-    for (let a = 0; a < 2*Math.PI; a += 0.05) {
-      let p = [star.r*Math.cos(a), 0, star.r*Math.sin(a)];
-      p = rotZ(p, deg(star.inc)); p = rotY(p, deg(star.az)); p = rotX(p, deg(tiltDeg));
-      const [col, row, z] = project(p);
-      if (z < 0) set(col, row, '.');
-    }
-  });
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++)
+      if (isInsidePlanet(x, y)) buf[y][x] = planetChar(x, y);
 
-  STAR_DEFS.forEach(star => {
-    for (let a = 0; a < 2*Math.PI; a += 0.05) {
-      let p = [star.r*Math.cos(a), 0, star.r*Math.sin(a)];
-      p = rotZ(p, deg(star.inc)); p = rotY(p, deg(star.az)); p = rotX(p, deg(tiltDeg));
-      const [col, row, z] = project(p);
-      if (z >= 0) set(col, row, '.');
-    }
-  });
+  for (const d of debris) {
+    const a = d.angle + frame * d.speed;
+    const TILT = 0.35;
+    const rx = Math.cos(a) * RING_A * d.radius;
+    const ry = Math.sin(a) * RING_B * d.radius;
+    const sx = Math.round(CX + rx * Math.cos(TILT) - ry * Math.sin(TILT));
+    const sy = Math.round(CY + rx * Math.sin(TILT) + ry * Math.cos(TILT));
+    const z3d = Math.sin(a);
+    if (sx < 0 || sx >= W || sy < 0 || sy >= H) continue;
+    if (z3d > 0 && isInsidePlanet(sx, sy)) continue;
+    buf[sy][sx] = d.ch;
+  }
 
-  STAR_DEFS.forEach(star => {
-    for (let i = 7; i >= 1; i--) {
-      const p3 = starPos3D(star, t - i * 0.09);
-      const [col, row] = project(p3);
-      const alpha = 1 - i / 9;
-      set(col, row, alpha > 0.6 ? star.ch : (alpha > 0.35 ? '.' : ' '));
-    }
-    const [col, row] = project(starPos3D(star, t));
-    set(col, row, star.ch);
-  });
-
-  return grid.map(r => r.join('')).join('\n');
+  el.textContent = buf.map(r => r.join('')).join('\n');
 }
 
-function loop(ts) {
-  if (!last) last = ts;
-  T += Math.min((ts - last) / 1000, 0.05) * 0.7;
-  last = ts;
-  el.textContent = render(T);
-  requestAnimationFrame(loop);
+function animate() {
+  frame++;
+  drawFrame();
+  requestAnimationFrame(animate);
 }
-requestAnimationFrame(loop);
+animate();
