@@ -1,10 +1,10 @@
-const W = 90, H = 50;
+const W = 60, H = 28;
 const CX = Math.floor(W / 2);
 const CY = Math.floor(H / 2);
 const el = document.getElementById('planet-canvas');
 
-const PLANET_RX = 12;
-const PLANET_RY = 7.5;
+const PLANET_RX = 8;
+const PLANET_RY = 5;
 
 const gradient = " .:-=+*#%@";
 
@@ -23,7 +23,7 @@ function isInsidePlanet(x, y) {
 }
 
 const stars = [];
-for (let i = 0; i < 30; i++) {
+for (let i = 0; i < 20; i++) {
   stars.push({
     x: Math.floor(Math.random() * W),
     y: Math.floor(Math.random() * H),
@@ -32,7 +32,7 @@ for (let i = 0; i < 30; i++) {
   });
 }
 
-const NUM_DEBRIS = 40;
+const NUM_DEBRIS = 30;
 const debris = [];
 for (let i = 0; i < NUM_DEBRIS; i++) {
   const angle = (i / NUM_DEBRIS) * Math.PI * 2;
@@ -44,8 +44,8 @@ for (let i = 0; i < NUM_DEBRIS; i++) {
   });
 }
 
-const RING_A = 22;
-const RING_B = 6;
+const RING_A = 15;
+const RING_B = 4;
 let frame = 0;
 
 function drawFrame() {
